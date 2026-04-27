@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROJECT HQ · Arthur Wang</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #090c12;
+    --bg2: #0f1420;
+    --bg3: #141a27;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #475569;
+    --accent: #5b8dee;
+    --accent2: #9b6be0;
+    --green: #4ade80;
+    --yellow: #facc15;
+    --slate: #64748b;
+    --red: #f87171;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    overflow-x: hidden;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 15% 15%, #1b2d5533 0%, transparent 70%),
+      radial-gradient(ellipse 50% 60% at 85% 85%, #1e143a33 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 50% 50%, #0d1a2a22 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Grid dot pattern */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #app { position: relative; z-index: 1; min-height: 100vh; }
+
+  /* ─── HEADER ─── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 36px 0;
+    gap: 16px;
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .logo-hex {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: #fff; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: #f1f5f9; letter-spacing: 0.06em; }
+  .subtitle { font-size: 10px; color: var(--text3); letter-spacing: 0.1em; margin-top: 2px; }
+
+  .btn-add {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; border-radius: 9px; color: #fff;
+    padding: 9px 20px; font-size: 13px; cursor: pointer;
+    font-family: 'DM Mono', monospace; letter-spacing: 0.04em;
+    transition: opacity 0.15s, transform 0.1s;
+    white-space: nowrap;
+  }
+  .btn-add:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-add:active { transform: translateY(0); }
+
+  /* ─── STATS BAR ─── */
+  .stats-bar {
+    display: flex; align-items: center; gap: 6px;
+    padding: 18px 36px 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .stats-bar::-webkit-scrollbar { display: none; }
+
+  .stat-chip {
+    display: flex; align-items: center; gap: 7px;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid transparent;
+    border-radius: 20px; padding: 5px 13px;
+    font-size: 11px; cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    transition: all 0.2s; white-space: nowrap; color: var(--text3);
+  }
+  .stat-chip:hover { background: rgba(255,255,255,0.06); color: var(--text2); }
+  .stat-chip.active { color: var(--chip-color); border-color: var(--chip-color); background: rgba(255,255,255,0.04); }
+  .stat-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--chip-color); flex-shrink: 0; }
+  .stat-count { font-weight: 600; margin-left: 1px; color: var(--chip-color); }
+
+  .spacer { flex: 1; min-width: 12px; }
+
+  .search-wrap { position: relative; }
+  .search-wrap::before {
+    content: '⌕'; position: absolute; left: 10px; top: 50%;
+    transform: translateY(-50%); color: var(--text3); font-size: 15px; pointer-events: none;
+  }
+  input[type="search"], .search {
+    background: rgba(255,255,255,0.045);
+    border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); padding: 6px 12px 6px 30px;
+    font-size: 12px; font-family: 'DM Mono', monospace;
+    width: 170px; outline: none; transition: border-color 0.2s;
+  }
+  .search:focus { border-color: var(--border2); }
+  .search::placeholder { color: var(--text3); }
+
+  .view-btns { display: flex; gap: 2px; }
+  .view-btn {
+    background: none; border: none; color: var(--text3);
+    font-size: 17px; cursor: pointer; padding: 4px 7px;
+    border-radius: 6px; transition: all 0.15s; line-height: 1;
+  }
+  .view-btn:hover { background: rgba(255,255,255,0.07); color: var(--text2); }
+  .view-btn.active { color: var(--accent); background: rgba(91,141,238,0.12); }
+
+  /* ─── GRID ─── */
+  .projects-wrap { padding: 0 36px 60px; }
+
+  .grid { display: grid; gap: 13px; grid-template-columns: repeat(auto-fill, minmax(285px, 1fr)); }
+  .list { display: flex; flex-direction: column; gap: 8px; }
+
+  /* ─── CARD ─── */
+  .card {
+    position: relative; overflow: hidden;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 16px 14px;
+    cursor: pointer; transition: all 0.2s;
+    animation: fadeUp 0.35s ease both;
+  }
+  .card:hover { background: rgba(255,255,255,0.045); border-color: var(--border2); transform: translateY(-2px); }
+  .card.selected { border-color: var(--card-color) !important; box-shadow: 0 0 0 1px var(--card-color-alpha), 0 8px 32px var(--card-color-shadow); }
+
+  .card-stripe {
+    position: absolute; top: 0; left: 0;
+    width: 3px; height: 100%; border-radius: 12px 0 0 12px;
+    background: var(--card-color);
+  }
+
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 7px; }
+  .card-name { font-family: 'Syne', sans-serif; font-size: 13.5px; font-weight: 700; color: #f1f5f9; padding-left: 10px; line-height: 1.3; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--s-color); flex-shrink: 0; margin-top: 4px; }
+
+  .card-desc { font-size: 10.5px; color: var(--text3); line-height: 1.55; padding-left: 10px; margin-bottom: 11px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+  .card-footer { display: flex; justify-content: space-between; align-items: center; padding-left: 10px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .mini-tag {
+    background: rgba(255,255,255,0.065); color: var(--text3);
+    border-radius: 4px; padding: 1px 6px; font-size: 9px; letter-spacing: 0.02em;
+  }
+  .status-chip {
+    font-size: 9.5px; font-weight: 600; letter-spacing: 0.05em;
+    border-radius: 10px; padding: 2px 9px;
+    background: var(--s-bg); color: var(--s-color);
+    white-space: nowrap; flex-shrink: 0;
+  }
+
+  /* LIST MODE card */
+  .list .card { padding: 12px 16px; }
+  .list .card-top { margin-bottom: 2px; }
+  .list .card-desc { margin-bottom: 6px; -webkit-line-clamp: 1; }
+
+  /* ─── EMPTY ─── */
+  .empty { color: var(--text3); font-size: 13px; padding: 40px 0; text-align: center; }
+
+  /* ─── OVERLAY / PANEL ─── */
+  .overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    animation: fadeIn 0.2s ease;
+  }
+  .panel {
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 16px;
+    width: min(500px, 95vw);
+    max-height: 88vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex; flex-direction: column;
+    position: relative;
+    animation: slideUp 0.25s ease;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.08) transparent;
+  }
+  .panel::-webkit-scrollbar { width: 4px; }
+  .panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+  .panel-glow {
+    position: absolute; inset: 0; pointer-events: none;
+    background: var(--panel-glow);
+    z-index: 0;
+  }
+
+  .panel-header {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 22px 22px 16px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: var(--bg2); z-index: 2;
+  }
+  .panel-dot { width: 11px; height: 11px; border-radius: 50%; background: var(--card-color); margin-top: 5px; flex-shrink: 0; }
+  .panel-title { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; color: #f1f5f9; margin-bottom: 5px; }
+  .close-btn { background: none; border: none; color: var(--text3); font-size: 18px; cursor: pointer; margin-left: auto; padding: 2px 6px; border-radius: 6px; transition: all 0.15s; flex-shrink: 0; line-height: 1; }
+  .close-btn:hover { background: rgba(255,255,255,0.07); color: var(--text2); }
+
+  .panel-body { padding: 18px 22px; position: relative; z-index: 1; }
+  .panel-desc { font-size: 13px; color: var(--text2); line-height: 1.65; margin-bottom: 18px; }
+  .section { margin-bottom: 16px; }
+  .section-label { font-size: 9px; color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 7px; }
+  .stack-tag {
+    display: inline-block;
+    background: rgba(91,141,238,0.13); color: #7ba4f0;
+    border-radius: 6px; padding: 3px 9px; font-size: 11px;
+    margin: 0 4px 4px 0;
+  }
+  .tag-item {
+    display: inline-block;
+    background: rgba(255,255,255,0.06); color: var(--text2);
+    border-radius: 6px; padding: 3px 9px; font-size: 11px;
+    margin: 0 4px 4px 0;
+  }
+  .link { color: var(--accent); font-size: 12px; text-decoration: none; word-break: break-all; }
+  .link:hover { text-decoration: underline; }
+
+  .panel-actions {
+    display: flex; gap: 8px; padding: 14px 22px 18px;
+    border-top: 1px solid var(--border); position: sticky; bottom: 0;
+    background: var(--bg2); z-index: 2;
+  }
+  .btn { border-radius: 8px; padding: 8px 18px; font-size: 12px; cursor: pointer; font-family: 'DM Mono', monospace; border: 1px solid; transition: all 0.15s; }
+  .btn-edit { background: rgba(91,141,238,0.12); border-color: rgba(91,141,238,0.28); color: #7ba4f0; }
+  .btn-edit:hover { background: rgba(91,141,238,0.2); }
+  .btn-delete { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.2); color: #f87171; }
+  .btn-delete:hover { background: rgba(248,113,113,0.16); }
+  .btn-save { background: linear-gradient(135deg, var(--accent), var(--accent2)); border-color: transparent; color: #fff; }
+  .btn-save:hover { opacity: 0.88; }
+  .btn-cancel { background: rgba(255,255,255,0.04); border-color: var(--border); color: var(--text2); }
+  .btn-cancel:hover { background: rgba(255,255,255,0.08); }
+
+  /* ─── EDIT FORM ─── */
+  .edit-form { padding: 14px 22px; position: relative; z-index: 1; }
+  .form-row { margin-bottom: 12px; }
+  .form-label { display: block; font-size: 9px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 5px; }
+  .form-input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 7px; color: var(--text);
+    font-size: 12px; padding: 8px 11px;
+    font-family: 'DM Mono', monospace; outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: rgba(91,141,238,0.4); background: rgba(91,141,238,0.05); }
+  textarea.form-input { height: 76px; resize: vertical; }
+  select.form-input { cursor: pointer; }
+  select.form-input option { background: var(--bg2); }
+
+  .color-row { display: flex; align-items: center; gap: 10px; }
+  input[type="color"] { width: 36px; height: 30px; border: none; background: none; cursor: pointer; border-radius: 6px; }
+  .color-hex { font-size: 11px; color: var(--text3); }
+
+  .edit-title-input {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 7px; color: #f1f5f9;
+    font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;
+    padding: 5px 9px; outline: none; width: 100%; margin-bottom: 5px;
+  }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(24px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 600px) {
+    header { padding: 20px 18px 0; flex-wrap: wrap; }
+    .stats-bar { padding: 14px 18px 10px; }
+    .projects-wrap { padding: 0 18px 50px; }
+    .grid { grid-template-columns: 1fr; }
+    .search { width: 130px; }
+  }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 5px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="header-left">
+      <div class="logo-hex">⬡</div>
+      <div>
+        <div class="title">PROJECT HQ</div>
+        <div class="subtitle" id="subtitle">Arthur Wang · 載入中…</div>
+      </div>
+    </div>
+    <button class="btn-add" onclick="openAdd()">＋ 新增專案</button>
+  </header>
+
+  <div class="stats-bar" id="stats-bar"></div>
+
+  <div class="projects-wrap">
+    <div id="grid" class="grid"></div>
+  </div>
+
+  <!-- Detail / Edit overlay -->
+  <div id="overlay" class="overlay" style="display:none" onclick="closePanel(event)">
+    <div class="panel" id="panel" onclick="event.stopPropagation()">
+      <div class="panel-glow" id="panel-glow"></div>
+      <div class="panel-header" id="panel-header"></div>
+      <div id="panel-content"></div>
+      <div class="panel-actions" id="panel-actions"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+const DEFAULT_PROJECTS = [
+  { id:1, name:"MAISON 精選選物", desc:"策展風格電商，Supabase 後端、Google OAuth、RLS 政策、管理員保護", stack:["React","Vite","Supabase","GitHub Pages"], status:"active", url:"", repo:"https://github.com/arthurwang110505-debug", tags:["E-commerce","Auth","RLS"], color:"#c9a96e" },
+  { id:2, name:"Deployify", desc:"Netlify 風格網頁部署平台，支援自動部署、預覽、自訂域名管理", stack:["React","Vite","Supabase","Netlify"], status:"active", url:"", repo:"https://github.com/arthurwang110505-debug", tags:["DevOps","Platform","Deploy"], color:"#5b8dee" },
+  { id:3, name:"StudyCore", desc:"全功能學習應用，AI 測驗生成、深色模式、日曆規劃器、localStorage 持久化", stack:["React","Vite","Netlify","Gemini API"], status:"active", url:"", repo:"https://github.com/arthurwang110505-debug", tags:["AI","PWA","Education"], color:"#6e8fc9" },
+  { id:4, name:"ElitePulse Coaching", desc:"教練平台，作業追蹤、iOS Safari 相容性修復，從 Base44 遷移至獨立架構", stack:["React","Vite","Vercel"], status:"active", url:"", repo:"https://github.com/arthurwang110505-debug", tags:["Coaching","Quiz","Vercel"], color:"#c96e6e" },
+  { id:5, name:"U-Sport PWA 臺北樂運動", desc:"政府運動獎勵 PWA，地理圍欄、Haversine 距離、U-Coin/U-Walk、14 場館、雙語", stack:["PWA","Service Worker","Geolocation"], status:"done", url:"", repo:"https://github.com/11251045-glitch", tags:["PWA","Geofencing","Bilingual"], color:"#6ec98f" },
+  { id:6, name:"MeetSnap", desc:"會議記錄摘要器，使用 Claude API 結構化 JSON 輸出", stack:["HTML","Claude API"], status:"done", url:"", repo:"", tags:["AI","Summarizer"], color:"#a96ec9" },
+  { id:7, name:"SECTOR-7 Escape Room", desc:"多階段實體+數位密室，Web Audio API Morse 碼、jsQR 相機掃描、程序謎題", stack:["HTML","Web Audio API","jsQR"], status:"done", url:"", repo:"", tags:["Game","Audio","QR"], color:"#c9826e" },
+  { id:8, name:"Director Live PWA", desc:"現場節目導播控制系統，ATEM Mini Pro、多機位設定、iOS Safari 版面修復", stack:["PWA","ATEM","GitHub Pages"], status:"done", url:"", repo:"https://github.com/11251045-glitch", tags:["Live","PWA","Control"], color:"#6ec9c9" },
+  { id:9, name:"CodeRift (VibeFlow)", desc:"AI 程式碼生成器，OpenRouter/Gemini、Google OAuth、Supabase、Netlify 部署", stack:["React","Vite","Supabase","Netlify"], status:"paused", url:"", repo:"https://github.com/arthurwang110505-debug", tags:["AI","Code Gen"], color:"#c9c96e" },
+  { id:10, name:"Aurora PWA", desc:"NOAA Kp 指數即時顯示 PWA，冰島旅行期間建構，CORS 除錯", stack:["PWA","NOAA API","GitHub Pages"], status:"done", url:"", repo:"https://github.com/11251045-glitch", tags:["PWA","Weather"], color:"#8fc96e" },
+  { id:11, name:"OpenClaw Chat", desc:"OpenClaw 風格 React + Netlify Functions 聊天應用，工具調用、OpenRouter 整合", stack:["React","Netlify Functions","OpenRouter"], status:"paused", url:"", repo:"", tags:["AI","Chat","Agentic"], color:"#c96eab" },
+  { id:12, name:"Magic Background", desc:"魔法主題動態背景動畫，獨立 HTML 工具", stack:["HTML","CSS","Canvas"], status:"done", url:"", repo:"", tags:["Animation","Visual"], color:"#6e7ec9" },
+  { id:13, name:"九望成績查詢系統", desc:"Google Apps Script 學生成績查詢系統，安全性、UX 改善建議", stack:["Google Apps Script","Google Sheets"], status:"done", url:"", repo:"https://github.com/11251045-glitch", tags:["School","GAS"], color:"#c9a06e" },
+];
+
+const STATUS = {
+  active: { label:"進行中", color:"#4ade80", bg:"rgba(74,222,128,0.11)" },
+  paused: { label:"暫停",   color:"#facc15", bg:"rgba(250,204,21,0.11)" },
+  done:   { label:"已完成", color:"#64748b", bg:"rgba(100,116,139,0.15)" },
+  idea:   { label:"構想",   color:"#818cf8", bg:"rgba(129,140,248,0.12)" },
+};
+
+// ─── STATE ──────────────────────────────────────────────────────────────────
+let projects = [];
+let filter = 'all';
+let search = '';
+let viewMode = 'grid'; // 'grid' | 'list'
+let selectedId = null;
+let editMode = false;
+let editData = null;
+let addMode = false;
+
+// ─── STORAGE ─────────────────────────────────────────────────────────────────
+function load() {
+  try {
+    const s = localStorage.getItem('arthur_projects_v2');
+    projects = s ? JSON.parse(s) : JSON.parse(JSON.stringify(DEFAULT_PROJECTS));
+  } catch { projects = JSON.parse(JSON.stringify(DEFAULT_PROJECTS)); }
+}
+function save() { try { localStorage.setItem('arthur_projects_v2', JSON.stringify(projects)); } catch {} }
+
+// ─── RENDER STATS ─────────────────────────────────────────────────────────
+function renderStats() {
+  const counts = { all: projects.length };
+  Object.keys(STATUS).forEach(k => { counts[k] = projects.filter(p => p.status === k).length; });
+
+  const chips = [
+    { key:'all',    label:'全部',   color:'#e2e8f0' },
+    { key:'active', label:'進行中', color:'#4ade80' },
+    { key:'done',   label:'已完成', color:'#64748b' },
+    { key:'paused', label:'暫停',   color:'#facc15' },
+    { key:'idea',   label:'構想',   color:'#818cf8' },
+  ];
+
+  document.getElementById('stats-bar').innerHTML =
+    chips.map(c => `
+      <button class="stat-chip ${filter===c.key?'active':''}" style="--chip-color:${c.color}" onclick="setFilter('${c.key}')">
+        <span class="stat-dot"></span>${c.label}<span class="stat-count">${counts[c.key]||0}</span>
+      </button>
+    `).join('') +
+    `<div class="spacer"></div>
+     <div class="search-wrap">
+       <input class="search" type="search" placeholder="搜尋專案…" value="${escHtml(search)}" oninput="setSearch(this.value)" />
+     </div>
+     <div class="view-btns">
+       <button class="view-btn ${viewMode==='grid'?'active':''}" onclick="setView('grid')" title="格狀">⊞</button>
+       <button class="view-btn ${viewMode==='list'?'active':''}" onclick="setView('list')" title="列表">≡</button>
+     </div>`;
+
+  document.getElementById('subtitle').textContent = `Arthur Wang · ${projects.length} 個專案`;
+}
+
+// ─── RENDER GRID ───────────────────────────────────────────────────────────
+function renderGrid() {
+  const el = document.getElementById('grid');
+  el.className = viewMode;
+
+  const filtered = projects.filter(p => {
+    const ms = filter === 'all' || p.status === filter;
+    const mq = !search || p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.desc.toLowerCase().includes(search.toLowerCase()) ||
+      p.tags.some(t => t.toLowerCase().includes(search.toLowerCase()));
+    return ms && mq;
+  });
+
+  if (!filtered.length) {
+    el.innerHTML = '<div class="empty">沒有符合的專案</div>';
+    return;
+  }
+
+  el.innerHTML = filtered.map((p, i) => {
+    const sc = STATUS[p.status] || STATUS.idea;
+    const stackSlice = p.stack.slice(0,3);
+    const extra = p.stack.length > 3 ? `<span class="mini-tag">+${p.stack.length-3}</span>` : '';
+    const delay = Math.min(i * 0.04, 0.4);
+    const alpha = p.color + '44';
+    const shadow = p.color + '18';
+    return `
+      <div class="card ${selectedId===p.id?'selected':''}"
+        style="--card-color:${p.color};--card-color-alpha:${alpha};--card-color-shadow:${shadow};animation-delay:${delay}s"
+        onclick="openProject(${p.id})">
+        <div class="card-stripe"></div>
+        <div class="card-top">
+          <div class="card-name">${escHtml(p.name)}</div>
+          <span class="status-dot" style="--s-color:${sc.color}" title="${sc.label}"></span>
+        </div>
+        <div class="card-desc">${escHtml(p.desc)}</div>
+        <div class="card-footer">
+          <div class="tags">
+            ${stackSlice.map(s=>`<span class="mini-tag">${escHtml(s)}</span>`).join('')}${extra}
+          </div>
+          <span class="status-chip" style="--s-color:${sc.color};--s-bg:${sc.bg}">${sc.label}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ─── RENDER PANEL (VIEW MODE) ─────────────────────────────────────────────
+function renderPanel() {
+  const p = projects.find(x => x.id === selectedId);
+  if (!p) return;
+  const sc = STATUS[p.status] || STATUS.idea;
+
+  document.getElementById('overlay').style.display = 'flex';
+  document.getElementById('panel-glow').style.background =
+    `linear-gradient(135deg, ${p.color}1a 0%, transparent 60%)`;
+
+  document.getElementById('panel-header').innerHTML = `
+    <div class="panel-dot" style="background:${p.color}"></div>
+    <div style="flex:1">
+      <div class="panel-title">${escHtml(p.name)}</div>
+      <span class="status-chip" style="--s-color:${sc.color};--s-bg:${sc.bg};font-size:10px">${sc.label}</span>
+    </div>
+    <button class="close-btn" onclick="closePanel()">✕</button>`;
+
+  document.getElementById('panel-content').innerHTML = `
+    <div class="panel-body">
+      <p class="panel-desc">${escHtml(p.desc)}</p>
+      <div class="section">
+        <div class="section-label">技術棧</div>
+        <div>${p.stack.map(s=>`<span class="stack-tag">${escHtml(s)}</span>`).join('')}</div>
+      </div>
+      ${p.tags.length ? `<div class="section">
+        <div class="section-label">標籤</div>
+        <div>${p.tags.map(t=>`<span class="tag-item">${escHtml(t)}</span>`).join('')}</div>
+      </div>` : ''}
+      ${p.url ? `<div class="section"><div class="section-label">網址</div><a href="${escHtml(p.url)}" class="link" target="_blank" rel="noreferrer">${escHtml(p.url)}</a></div>` : ''}
+      ${p.repo ? `<div class="section"><div class="section-label">Repo</div><a href="${escHtml(p.repo)}" class="link" target="_blank" rel="noreferrer">${escHtml(p.repo)}</a></div>` : ''}
+    </div>`;
+
+  document.getElementById('panel-actions').innerHTML = `
+    <button class="btn btn-edit" onclick="startEdit()">編輯</button>
+    <button class="btn btn-delete" onclick="deleteProject(${p.id})">刪除</button>`;
+}
+
+// ─── RENDER EDIT FORM ─────────────────────────────────────────────────────
+function renderEditPanel() {
+  const p = editData;
+
+  document.getElementById('panel-header').innerHTML = `
+    <div class="panel-dot" style="background:${p.color}"></div>
+    <div style="flex:1">
+      <input class="edit-title-input" value="${escHtml(p.name)}" oninput="editField('name',this.value)" placeholder="專案名稱" />
+      <span class="status-chip" style="--s-color:${(STATUS[p.status]||STATUS.idea).color};--s-bg:${(STATUS[p.status]||STATUS.idea).bg};font-size:10px">${(STATUS[p.status]||STATUS.idea).label}</span>
+    </div>
+    <button class="close-btn" onclick="closePanel()">✕</button>`;
+
+  document.getElementById('panel-content').innerHTML = `
+    <div class="edit-form">
+      ${formRow('描述','desc','textarea',p.desc)}
+      ${formRow('網址','url','text',p.url)}
+      ${formRow('Repo','repo','text',p.repo)}
+      <div class="form-row">
+        <label class="form-label">狀態</label>
+        <select class="form-input" onchange="editField('status',this.value)">
+          ${Object.entries(STATUS).map(([k,v])=>`<option value="${k}" ${p.status===k?'selected':''}>${v.label}</option>`).join('')}
+        </select>
+      </div>
+      ${formRow('技術棧（逗號分隔）','stack','text',p.stack.join(', '))}
+      ${formRow('標籤（逗號分隔）','tags','text',p.tags.join(', '))}
+      <div class="form-row">
+        <label class="form-label">主題色</label>
+        <div class="color-row">
+          <input type="color" value="${p.color}" oninput="editField('color',this.value)" />
+          <span class="color-hex" id="color-hex">${p.color}</span>
+        </div>
+      </div>
+    </div>`;
+
+  document.getElementById('panel-actions').innerHTML = `
+    <button class="btn btn-save" onclick="saveEdit()">儲存</button>
+    <button class="btn btn-cancel" onclick="cancelEdit()">取消</button>`;
+}
+
+function formRow(label, field, type, val) {
+  const safeVal = escHtml(String(val||''));
+  if (type === 'textarea') return `
+    <div class="form-row">
+      <label class="form-label">${label}</label>
+      <textarea class="form-input" oninput="editField('${field}',this.value)">${safeVal}</textarea>
+    </div>`;
+  return `
+    <div class="form-row">
+      <label class="form-label">${label}</label>
+      <input class="form-input" type="text" value="${safeVal}" oninput="editField('${field}',this.value)" />
+    </div>`;
+}
+
+// ─── RENDER ADD FORM ───────────────────────────────────────────────────────
+function renderAddPanel() {
+  const p = editData;
+  document.getElementById('overlay').style.display = 'flex';
+  document.getElementById('panel-glow').style.background = 'linear-gradient(135deg,#5b8dee1a 0%,transparent 60%)';
+
+  document.getElementById('panel-header').innerHTML = `
+    <div class="panel-dot" style="background:${p.color}"></div>
+    <div style="flex:1"><div class="panel-title">新增專案</div></div>
+    <button class="close-btn" onclick="closePanel()">✕</button>`;
+
+  document.getElementById('panel-content').innerHTML = `
+    <div class="edit-form">
+      ${formRow('名稱','name','text',p.name)}
+      ${formRow('描述','desc','textarea',p.desc)}
+      ${formRow('網址','url','text',p.url)}
+      ${formRow('Repo','repo','text',p.repo)}
+      <div class="form-row">
+        <label class="form-label">狀態</label>
+        <select class="form-input" onchange="editField('status',this.value)">
+          ${Object.entries(STATUS).map(([k,v])=>`<option value="${k}" ${p.status===k?'selected':''}>${v.label}</option>`).join('')}
+        </select>
+      </div>
+      ${formRow('技術棧（逗號分隔）','stack','text',p.stack.join(', '))}
+      ${formRow('標籤（逗號分隔）','tags','text',p.tags.join(', '))}
+      <div class="form-row">
+        <label class="form-label">主題色</label>
+        <div class="color-row">
+          <input type="color" value="${p.color}" oninput="editField('color',this.value)" />
+          <span class="color-hex" id="color-hex">${p.color}</span>
+        </div>
+      </div>
+    </div>`;
+
+  document.getElementById('panel-actions').innerHTML = `
+    <button class="btn btn-save" onclick="confirmAdd()">新增</button>
+    <button class="btn btn-cancel" onclick="closePanel()">取消</button>`;
+}
+
+// ─── ACTIONS ──────────────────────────────────────────────────────────────
+function openProject(id) {
+  selectedId = id; editMode = false; addMode = false;
+  renderGrid(); renderStats(); renderPanel();
+}
+
+function startEdit() {
+  const p = projects.find(x => x.id === selectedId);
+  if (!p) return;
+  editMode = true;
+  editData = JSON.parse(JSON.stringify(p));
+  renderEditPanel();
+}
+
+function editField(field, value) {
+  if (!editData) return;
+  if (field === 'stack' || field === 'tags') {
+    editData[field] = value.split(',').map(s=>s.trim()).filter(Boolean);
+  } else {
+    editData[field] = value;
+  }
+  if (field === 'color') {
+    const hex = document.getElementById('color-hex');
+    if (hex) hex.textContent = value;
+    document.getElementById('panel-header').querySelector('.panel-dot').style.background = value;
+  }
+}
+
+function saveEdit() {
+  if (!editData) return;
+  projects = projects.map(p => p.id === editData.id ? editData : p);
+  save();
+  selectedId = editData.id; editMode = false; editData = null;
+  renderStats(); renderGrid(); renderPanel();
+}
+
+function cancelEdit() {
+  editMode = false; editData = null;
+  renderPanel();
+}
+
+function deleteProject(id) {
+  if (!confirm('確定要刪除這個專案嗎？')) return;
+  projects = projects.filter(p => p.id !== id);
+  save(); selectedId = null;
+  closePanel();
+  renderStats(); renderGrid();
+}
+
+function openAdd() {
+  addMode = true; editMode = false; selectedId = null;
+  editData = { id: Date.now(), name:'', desc:'', stack:[], status:'idea', url:'', repo:'', tags:[], color:'#5b8dee' };
+  renderAddPanel();
+}
+
+function confirmAdd() {
+  if (!editData || !editData.name.trim()) return;
+  projects.unshift(editData);
+  save(); addMode = false;
+  closePanel();
+  renderStats(); renderGrid();
+}
+
+function closePanel(e) {
+  if (e && e.target !== document.getElementById('overlay')) return;
+  document.getElementById('overlay').style.display = 'none';
+  selectedId = null; editMode = false; addMode = false; editData = null;
+  renderGrid(); renderStats();
+}
+
+function setFilter(f) { filter = f; renderStats(); renderGrid(); }
+function setSearch(v) { search = v; renderGrid(); }
+function setView(v) { viewMode = v; renderStats(); renderGrid(); }
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────
+load();
+renderStats();
+renderGrid();
+</script>
+</body>
+</html>
